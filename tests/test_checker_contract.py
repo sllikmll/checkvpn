@@ -33,8 +33,20 @@ def test_checker_output_contract_for_vless(monkeypatch):
     assert outcome.summary is not None
 
 
-def test_checker_output_contract_for_tg_proxy():
+def test_checker_output_contract_for_tg_proxy(monkeypatch):
     checker = get_checker(Protocol.TG_PROXY)
+    monkeypatch.setattr(
+        checker,
+        "check_text",
+        lambda config_text: CheckOutcome(
+            protocol=Protocol.TG_PROXY,
+            status=CheckStatus.ONLINE,
+            stage="usable_connectivity",
+            summary="ok",
+            latency_ms=33,
+            details={"dc_id": 2, "response_len": 24},
+        ),
+    )
     outcome = checker.check_text("tg://proxy?server=telegram.example.com&port=443&secret=abcdef")
     assert isinstance(outcome, CheckOutcome)
     assert outcome.protocol == Protocol.TG_PROXY

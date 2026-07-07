@@ -56,40 +56,45 @@ def test_vless_checker_reports_offline_when_deep_probe_fails(monkeypatch):
     assert "timed out" in outcome.summary.lower()
 
 
-def test_tg_proxy_checker_reports_online_with_secret_presence(monkeypatch):
+def test_tg_proxy_checker_reports_online_with_deep_probe(monkeypatch):
     checker = TelegramProxyChecker()
 
-    monkeypatch.setattr("app.checkers.tg_proxy.measure_tcp_connect", lambda host, port, timeout=3.0: 12)
-    monkeypatch.setattr("app.checkers.tg_proxy.resolve_host", lambda host: ["198.51.100.20"])
+    monkeypatch.setattr(
+        "app.checkers.tg_proxy.probe_tg_proxy_uri",
+        lambda config_text: CheckOutcome(
+            protocol=Protocol.TG_PROXY,
+            status=CheckStatus.ONLINE,
+            stage="usable_connectivity",
+            summary="Telegram proxy accepted MTProto request",
+            latency_ms=55,
+            details={"dc_id": 2, "response_len": 24},
+        ),
+    )
 
     outcome = checker.check_text(TG_URI)
 
     assert outcome.status is CheckStatus.ONLINE
-    assert outcome.stage == "tcp_connect"
-    assert outcome.latency_ms == 12
-    assert outcome.summary == "Telegram proxy endpoint reachable"
-    assert outcome.details == {
-        "host": "telegram.example.com",
-        "port": 443,
-        "secret_present": True,
-        "kind": "proxy",
-        "resolved_ips": ["198.51.100.20"],
-    }
+    assert outcome.stage == "usable_connectivity"
+    assert outcome.latency_ms == 55
+    assert outcome.details["dc_id"] == 2
 
 
-def test_tg_proxy_checker_reports_offline_when_tcp_connect_fails(monkeypatch):
+def test_tg_proxy_checker_reports_offline_when_deep_probe_fails(monkeypatch):
     checker = TelegramProxyChecker()
 
-    def raise_oserror(host, port, timeout=3.0):
-        raise OSError("connection refused")
-
-    monkeypatch.setattr("app.checkers.tg_proxy.measure_tcp_connect", raise_oserror)
+    monkeypatch.setattr(
+        "app.checkers.tg_proxy.probe_tg_proxy_uri",
+        lambda config_text: CheckOutcome(
+            protocol=Protocol.TG_PROXY,
+            status=CheckStatus.OFFLINE,
+            stage="mtproto_response",
+            summary="Telegram proxy deep-check failed: no MTProto response",
+            details={"host": "telegram.example.com", "port": 443},
+        ),
+    )
 
     outcome = checker.check_text(TG_URI)
 
     assert outcome.status is CheckStatus.OFFLINE
-    assert outcome.stage == "tcp_connect"
-    assert "unreachable" in outcome.summary.lower()
-    assert "connection refused" in outcome.summary.lower()
-    assert outcome.latency_ms is None
-    assert outcome.details == {"host": "telegram.example.com", "port": 443}
+    assert outcome.stage == "mtproto_response"
+    assert "no mtproto response" in outcome.summary.lower()

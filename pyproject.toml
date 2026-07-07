@@ -10,7 +10,8 @@ dependencies = [
   "jinja2>=3.1.6",
   "sqlmodel>=0.0.24",
   "httpx>=0.28.1",
-  "python-multipart>=0.0.20"
+  "python-multipart>=0.0.20",
+  "cryptography>=45.0.0"
 ]
 
 [dependency-groups]

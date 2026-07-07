@@ -16,7 +16,7 @@ CheckVPN — это self-hosted веб-сервис для хранения ко
   - Telegram proxy URI
 - проверки:
   - `vless` — deep-check через временный local `xray`: реальный outbound HTTP/IP через proxy
-  - `tg-proxy` — TCP reachability до endpoint
+  - `tg-proxy` — deep-check: raw obfuscated MTProto handshake + `req_pq` + реальный MTProto response
   - `wireguard` — реальный temporary tunnel probe: handshake + DNS + внешний HTTP/IP через tunnel
   - `amneziawg` — реальный temporary tunnel probe: handshake + DNS + внешний HTTP/IP через tunnel
 
