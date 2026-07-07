@@ -55,11 +55,16 @@ def parse_vless_uri(text: str) -> dict:
         "host": parsed.hostname,
         "port": parsed.port,
         "uuid": parsed.username,
+        "encryption": query.get("encryption", [""])[0],
+        "flow": query.get("flow", [""])[0],
         "security": query.get("security", [""])[0],
         "type": query.get("type", [""])[0],
         "sni": query.get("sni", [""])[0],
         "pbk": query.get("pbk", [""])[0],
         "sid": query.get("sid", [""])[0],
+        "fp": query.get("fp", [""])[0],
+        "path": unquote(query.get("path", [""])[0]),
+        "host_header": query.get("host", [""])[0],
         "spx": unquote(query.get("spx", [""])[0]),
     }
 

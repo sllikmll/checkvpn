@@ -45,12 +45,15 @@ AllowedIPs = 0.0.0.0/0
 
 
 def test_parse_vless_uri_extracts_core_fields():
-    text = "vless://12345678-1234-1234-1234-123456789012@example.com:443?security=reality&type=tcp&sni=yandex.ru&pbk=KEY&sid=ac#demo"
+    text = "vless://12345678-1234-1234-1234-123456789012@example.com:443?security=reality&type=tcp&sni=yandex.ru&pbk=KEY&sid=ac&fp=firefox#demo"
     parsed = parse_target_config(Protocol.VLESS, text)
     assert parsed["host"] == "example.com"
     assert parsed["port"] == 443
     assert parsed["security"] == "reality"
     assert parsed["sni"] == "yandex.ru"
+    assert parsed["pbk"] == "KEY"
+    assert parsed["sid"] == "ac"
+    assert parsed["fp"] == "firefox"
 
 
 def test_parse_tg_proxy_uri_extracts_secret():

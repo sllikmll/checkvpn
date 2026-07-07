@@ -23,8 +23,9 @@ COPY app /app/app
 COPY third_party/amneziawg/linux-amd64/awg /usr/local/bin/awg
 COPY third_party/amneziawg/linux-amd64/awg-quick /usr/local/bin/awg-quick
 COPY third_party/amneziawg/linux-amd64/amneziawg-go /usr/local/bin/amneziawg-go
+COPY third_party/xray/linux-amd64/xray /usr/local/bin/xray
 
-RUN chmod +x /usr/local/bin/awg /usr/local/bin/awg-quick /usr/local/bin/amneziawg-go
+RUN chmod +x /usr/local/bin/awg /usr/local/bin/awg-quick /usr/local/bin/amneziawg-go /usr/local/bin/xray
 
 RUN pip install --upgrade pip \
     && pip install .

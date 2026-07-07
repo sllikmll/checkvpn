@@ -1,6 +1,7 @@
 from app.checkers.tg_proxy import TelegramProxyChecker
 from app.checkers.vless import VlessChecker
-from app.models import CheckStatus
+from app.checkers.base import CheckOutcome
+from app.models import CheckStatus, Protocol
 
 
 VLESS_URI = (
@@ -11,42 +12,48 @@ VLESS_URI = (
 TG_URI = "tg://proxy?server=telegram.example.com&port=443&secret=abcdef"
 
 
-def test_vless_checker_reports_online_with_latency_and_resolution(monkeypatch):
+def test_vless_checker_reports_online_with_deep_probe(monkeypatch):
     checker = VlessChecker()
 
-    monkeypatch.setattr("app.checkers.vless.measure_tcp_connect", lambda host, port, timeout=3.0: 37)
-    monkeypatch.setattr("app.checkers.vless.resolve_host", lambda host: ["203.0.113.10", "203.0.113.11"])
+    monkeypatch.setattr(
+        "app.checkers.vless.probe_vless_uri",
+        lambda config_text: CheckOutcome(
+            protocol=Protocol.VLESS,
+            status=CheckStatus.ONLINE,
+            stage="usable_connectivity",
+            summary="VLESS tunnel established",
+            latency_ms=84,
+            details={"egress_ip": "198.51.100.77"},
+        ),
+    )
 
     outcome = checker.check_text(VLESS_URI)
 
     assert outcome.status is CheckStatus.ONLINE
-    assert outcome.stage == "tcp_connect"
-    assert outcome.latency_ms == 37
-    assert outcome.summary == "VLESS endpoint reachable"
-    assert outcome.details == {
-        "host": "example.com",
-        "port": 443,
-        "security": "reality",
-        "resolved_ips": ["203.0.113.10", "203.0.113.11"],
-    }
+    assert outcome.stage == "usable_connectivity"
+    assert outcome.latency_ms == 84
+    assert outcome.details["egress_ip"] == "198.51.100.77"
 
 
-def test_vless_checker_reports_offline_when_tcp_connect_fails(monkeypatch):
+def test_vless_checker_reports_offline_when_deep_probe_fails(monkeypatch):
     checker = VlessChecker()
 
-    def raise_timeout(host, port, timeout=3.0):
-        raise TimeoutError("timed out")
-
-    monkeypatch.setattr("app.checkers.vless.measure_tcp_connect", raise_timeout)
+    monkeypatch.setattr(
+        "app.checkers.vless.probe_vless_uri",
+        lambda config_text: CheckOutcome(
+            protocol=Protocol.VLESS,
+            status=CheckStatus.OFFLINE,
+            stage="proxy_http",
+            summary="VLESS deep-check failed: timed out",
+            details={"host": "example.com", "port": 443},
+        ),
+    )
 
     outcome = checker.check_text(VLESS_URI)
 
     assert outcome.status is CheckStatus.OFFLINE
-    assert outcome.stage == "tcp_connect"
-    assert "unreachable" in outcome.summary.lower()
+    assert outcome.stage == "proxy_http"
     assert "timed out" in outcome.summary.lower()
-    assert outcome.latency_ms is None
-    assert outcome.details == {"host": "example.com", "port": 443}
 
 
 def test_tg_proxy_checker_reports_online_with_secret_presence(monkeypatch):

@@ -15,7 +15,7 @@ CheckVPN — это self-hosted веб-сервис для хранения ко
   - VLESS URI
   - Telegram proxy URI
 - проверки:
-  - `vless` — TCP reachability до endpoint
+  - `vless` — deep-check через временный local `xray`: реальный outbound HTTP/IP через proxy
   - `tg-proxy` — TCP reachability до endpoint
   - `wireguard` — реальный temporary tunnel probe: handshake + DNS + внешний HTTP/IP через tunnel
   - `amneziawg` — реальный temporary tunnel probe: handshake + DNS + внешний HTTP/IP через tunnel
@@ -24,7 +24,9 @@ CheckVPN — это self-hosted веб-сервис для хранения ко
 
 - Для `wireguard` / `amneziawg` сервису нужны контейнерные привилегии `NET_ADMIN`.
 - Для `amneziawg` контейнеру также нужен доступ к `/dev/net/tun`.
-- Проверка отражает **реальную пригодность конфига**: если handshake проходит, но внешний HTTP через tunnel не работает, статус будет `OFFLINE` на стадии `http`, а не ложный `ONLINE`.
+- Для `vless` deep-check внутри контейнера должен быть доступен `xray`.
+- `vless` deep-check сейчас ориентирован на реальные outbound-проверки через временный local SOCKS proxy от `xray`; на практике это даёт полезную проверку для `reality/tcp`, `tls/tcp` и базовых `ws`-конфигов.
+- Проверка отражает **реальную пригодность конфига**: если handshake проходит, но внешний HTTP через tunnel/proxy не работает, статус будет `OFFLINE` на соответствующей стадии, а не ложный `ONLINE`.
 - Внешние VPN-серверы сервис сам не меняет — он только проверяет доступность и пригодность конфигов.
 
 ## Локальный запуск
