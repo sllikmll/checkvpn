@@ -19,3 +19,12 @@ def test_checker_output_contract_for_vless():
     assert outcome.protocol == Protocol.VLESS
     assert outcome.stage
     assert outcome.summary is not None
+
+
+def test_checker_output_contract_for_tg_proxy():
+    checker = get_checker(Protocol.TG_PROXY)
+    outcome = checker.check_text("tg://proxy?server=telegram.example.com&port=443&secret=abcdef")
+    assert isinstance(outcome, CheckOutcome)
+    assert outcome.protocol == Protocol.TG_PROXY
+    assert outcome.stage
+    assert outcome.summary is not None
