@@ -1,0 +1,20 @@
+services:
+  checkvpn:
+    build: .
+    container_name: checkvpn
+    restart: unless-stopped
+    ports:
+      - "8099:8098"
+    env_file:
+      - .env
+    environment:
+      CHECKVPN_DB_URL: sqlite:////app/data/checkvpn.db
+    volumes:
+      - ./data:/app/data
+    cap_add:
+      - NET_ADMIN
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8098/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3

@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8">
+    <title>CheckVPN</title>
+    <link rel="stylesheet" href="/static/styles.css">
+  </head>
+  <body>
+    <main class="container">
+      <div class="topbar">
+        <div>
+          <h1>CheckVPN</h1>
+          <p class="subtitle">Проверка доступности VPN и proxy-конфигов</p>
+        </div>
+        <form method="post" action="/logout">
+          <button type="submit">Logout ({{ current_user.username }})</button>
+        </form>
+      </div>
+
+      <section class="card">
+        <h2>Добавить конфиг</h2>
+        <form method="post" action="/targets" class="stack">
+          <label>Название<input type="text" name="name" required></label>
+          <label>Протокол
+            <select name="protocol" required>
+              {% for protocol in protocols %}
+              <option value="{{ protocol }}">{{ protocol }}</option>
+              {% endfor %}
+            </select>
+          </label>
+          <label>Конфиг<textarea name="config_text" rows="10" required></textarea></label>
+          <button type="submit">Сохранить</button>
+        </form>
+      </section>
+
+      <section class="card">
+        <h2>Текущие цели</h2>
+        {% if rows %}
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Название</th>
+              <th>Протокол</th>
+              <th>Статус</th>
+              <th>Latency</th>
+              <th>Summary</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in rows %}
+            <tr>
+              <td>{{ row.target.id }}</td>
+              <td>{{ row.target.name }}</td>
+              <td>{{ row.target.protocol }}</td>
+              <td>{{ row.latest.status if row.latest else 'never-run' }}</td>
+              <td>{{ row.latest.latency_ms if row.latest and row.latest.latency_ms is not none else '-' }}</td>
+              <td>{{ row.latest.summary if row.latest else 'Проверка ещё не запускалась' }}</td>
+              <td>
+                <form method="post" action="/targets/{{ row.target.id }}/run">
+                  <button type="submit">Запустить</button>
+                </form>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% else %}
+        <p>Пока нет ни одного конфига.</p>
+        {% endif %}
+      </section>
+    </main>
+  </body>
+</html>
