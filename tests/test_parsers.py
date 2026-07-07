@@ -6,16 +6,22 @@ def test_parse_wireguard_config_extracts_endpoint():
     text = """
 [Interface]
 PrivateKey = aaa=
-Address = 10.0.0.2/32
+Address = 10.0.0.2/32, fd00::2/128
+DNS = 1.1.1.1, 8.8.8.8
 
 [Peer]
 PublicKey = bbb=
 Endpoint = 1.2.3.4:51820
-AllowedIPs = 0.0.0.0/0
+AllowedIPs = 0.0.0.0/0, ::/0
 """.strip()
     parsed = parse_target_config(Protocol.WIREGUARD, text)
     assert parsed["host"] == "1.2.3.4"
     assert parsed["port"] == 51820
+    assert parsed["private_key"] == "aaa="
+    assert parsed["peer_public_key"] == "bbb="
+    assert parsed["addresses"] == ["10.0.0.2/32", "fd00::2/128"]
+    assert parsed["dns_servers"] == ["1.1.1.1", "8.8.8.8"]
+    assert parsed["allowed_ips"] == ["0.0.0.0/0", "::/0"]
 
 
 def test_parse_amneziawg_config_extracts_endpoint_and_marks_awg():

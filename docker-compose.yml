@@ -11,6 +11,8 @@ services:
       CHECKVPN_DB_URL: sqlite:////app/data/checkvpn.db
     volumes:
       - ./data:/app/data
+    devices:
+      - /dev/net/tun:/dev/net/tun
     cap_add:
       - NET_ADMIN
     healthcheck:

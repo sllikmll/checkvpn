@@ -14,14 +14,18 @@ CheckVPN — это self-hosted веб-сервис для хранения ко
   - AmneziaWG
   - VLESS URI
   - Telegram proxy URI
-- первичные проверки:
+- проверки:
   - `vless` — TCP reachability до endpoint
   - `tg-proxy` — TCP reachability до endpoint
-  - `wireguard` / `amneziawg` — endpoint resolution с пометкой, что полный tunnel/handshake check требует реальных конфигов и привилегированного runtime
+  - `wireguard` — реальный temporary tunnel probe: handshake + DNS + внешний HTTP/IP через tunnel
+  - `amneziawg` — реальный temporary tunnel probe: handshake + DNS + внешний HTTP/IP через tunnel
 
 ## Ограничения текущей версии
 
-Это **MVP foundation**. Полная проверка пригодности `WireGuard` / `AmneziaWG` / глубокая VLESS-проверка будут доведены на следующем шаге после загрузки ваших реальных конфигов. Внешние серверы сервис сам не меняет.
+- Для `wireguard` / `amneziawg` сервису нужны контейнерные привилегии `NET_ADMIN`.
+- Для `amneziawg` контейнеру также нужен доступ к `/dev/net/tun`.
+- Проверка отражает **реальную пригодность конфига**: если handshake проходит, но внешний HTTP через tunnel не работает, статус будет `OFFLINE` на стадии `http`, а не ложный `ONLINE`.
+- Внешние VPN-серверы сервис сам не меняет — он только проверяет доступность и пригодность конфигов.
 
 ## Локальный запуск
 

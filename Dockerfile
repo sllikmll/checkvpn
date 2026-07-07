@@ -9,15 +9,22 @@ WORKDIR /app
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
+       bash \
        curl \
        iproute2 \
        iputils-ping \
        dnsutils \
+       musl \
        wireguard-tools \
     && rm -rf /var/lib/apt/lists/*
 
 COPY pyproject.toml README.md /app/
 COPY app /app/app
+COPY third_party/amneziawg/linux-amd64/awg /usr/local/bin/awg
+COPY third_party/amneziawg/linux-amd64/awg-quick /usr/local/bin/awg-quick
+COPY third_party/amneziawg/linux-amd64/amneziawg-go /usr/local/bin/amneziawg-go
+
+RUN chmod +x /usr/local/bin/awg /usr/local/bin/awg-quick /usr/local/bin/amneziawg-go
 
 RUN pip install --upgrade pip \
     && pip install .

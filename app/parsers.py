@@ -26,14 +26,20 @@ def parse_wireguard_like(text: str, *, expect_awg: bool) -> dict:
     if not endpoint or ":" not in endpoint:
         raise ParseError("Missing Endpoint host:port")
     host, port = endpoint.rsplit(":", 1)
+    interface = dict(parser.items("Interface")) if parser.has_section("Interface") else {}
+    peer = dict(parser.items("Peer"))
     result = {
         "host": host.strip(),
         "port": int(port),
         "endpoint": endpoint.strip(),
         "is_awg": False,
+        "private_key": interface.get("PrivateKey", "").strip(),
+        "peer_public_key": peer.get("PublicKey", "").strip(),
+        "addresses": [item.strip() for item in interface.get("Address", "").split(",") if item.strip()],
+        "dns_servers": [item.strip() for item in interface.get("DNS", "").split(",") if item.strip()],
+        "allowed_ips": [item.strip() for item in peer.get("AllowedIPs", "").split(",") if item.strip()],
     }
     if expect_awg:
-        interface = dict(parser.items("Interface")) if parser.has_section("Interface") else {}
         result["is_awg"] = any(k in interface for k in ("Jc", "Jmin", "Jmax", "S1", "H1"))
     return result
 
